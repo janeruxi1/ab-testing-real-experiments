@@ -144,7 +144,7 @@ the e-mail test readout, a sample-size calculator, a Bayesian readout for any co
 
 ## Related work
 
-[`StreamFlix-Churn-Retention`](https://github.com/janeruxi1/StreamFlix-Churn-Retention) (who to
+[`churn-uplift-decisioning`](https://github.com/janeruxi1/churn-uplift-decisioning) (who to
 keep, and how) and [`StreamFlix-RAG-evaluation`](https://github.com/janeruxi1/StreamFlix-RAG-evaluation)
 (is an AI support assistant safe to deploy?).
 
