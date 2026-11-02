@@ -1,7 +1,14 @@
 # %% [markdown]
 # # 02 · The e-mail test: what did each e-mail do?
 #
-# Every choice below was fixed in the analysis plan
+# | | |
+# |---|---|
+# | **Question** | Did each e-mail raise spend, and is either worth sending to every customer? |
+# | **Data** | The same 64,000 customers as [notebook 01](01_email_test_checks.ipynb), whose checks all passed. |
+# | **Answer** | Both e-mails raised spend, and the men's e-mail raised it more, by a margin that holds up after correcting for several comparisons. Under the plan's rule: **send the men's e-mail to everyone**, keep a small holdback group to keep measuring it, and test a new version against it next. |
+# | **Next** | [Notebook 03](03_email_test_targeting.ipynb) asks whether different customers should get different e-mails. |
+#
+# **How the readout works.** Every choice below was fixed in the analysis plan
 # ([`reports/hillstrom_analysis_plan.md`](../reports/hillstrom_analysis_plan.md)) before this
 # notebook ran: the metrics, the spend cap, the covariates for regression adjustment, the three
 # comparisons and their multiple-testing correction, and the decision rule.
@@ -13,6 +20,17 @@
 #   each metric.
 # - **Adjustment:** Lin (2013) regression adjustment on the pre-send variables, HC2 errors; the
 #   decision uses the adjusted estimate, the unadjusted one is shown beside it.
+#
+# **Key terms**
+#
+# - **Intention to treat:** everyone is counted in the group they were assigned to, whether or
+#   not they opened the e-mail. It measures what *sending* the e-mail does.
+# - **95% confidence interval (CI):** the range of effects consistent with the data. If it
+#   excludes zero, the effect is unlikely to be chance.
+# - **Holm correction:** three comparisons give three chances of a false alarm; Holm raises the
+#   bar for each so the chance of any false alarm stays at 5%.
+# - **Regression adjustment (the CUPED idea):** use what was known about each customer before
+#   the send to remove some noise, which narrows the interval without biasing the estimate.
 
 # %%
 import sys
@@ -71,6 +89,12 @@ table = pd.DataFrame(rows)
 table.round(4)
 
 # %% [markdown]
+# **How to read the table.** One row per metric and comparison. `adjusted diff` is the effect
+# (for spend, in dollars per customer over two weeks; for rates, as a share, so 0.005 is half a
+# point); the CI columns give its range; `Holm 5%` says whether it survives the correction for
+# three comparisons. The figure in section 4 shows the same numbers as a picture.
+
+# %% [markdown]
 # ## 2. What regression adjustment bought
 #
 # The pre-send variables explain part of each customer's outcome, so removing that part narrows
@@ -83,6 +107,12 @@ table.round(4)
 gain = table.groupby("metric", sort=False)["CI narrower by"].mean()
 gain_sample = 1 / (1 - gain) ** 2 - 1
 pd.DataFrame({"CI narrower by": gain, "equivalent extra sample": gain_sample}).round(3)
+
+# %% [markdown]
+# **What this means.** The adjustment barely narrows the intervals here: what was known about a
+# customer before the send (recency, past spend, channel) says little about their spend in the
+# next two weeks. It is still the planned estimate, and it costs nothing. The StreamFlix appendix
+# shows a case where it helps a lot.
 
 # %% [markdown]
 # ## 3. The decision rule, applied
@@ -121,6 +151,30 @@ print(f"men's vs women's: {head.diff:+.3f} [{head.ci[0]:+.3f}, {head.ci[1]:+.3f}
 print("decision under the plan's rule:", decision)
 
 # %% [markdown]
+# **The same decision as a picture.** The net value of e-mailing 1,000 customers (extra spend
+# times the 40% margin, less $0.10 per e-mail), with its 95% interval. Above zero, the e-mail
+# pays for itself. The men's e-mail clearly does; the women's e-mail probably does, but its
+# interval reaches below zero.
+
+# %%
+fig, ax = plt.subplots(figsize=(7.5, 2.6))
+for i, (arm, label, colour) in enumerate([("mens", "Men's e-mail", "#5B8FF9"), ("womens", "Women's e-mail", "#5AD8A6")]):
+    v = value[arm]
+    ax.plot(v["value_per_1000_ci"], [i, i], color=colour, lw=4, solid_capstyle="round")
+    ax.plot(v["value_per_1000"], i, "o", color=colour, ms=9, mec="white", mew=1.5)
+    ax.annotate(f"${v['value_per_1000']:,.0f}", (v["value_per_1000"], i), xytext=(0, 9), textcoords="offset points",
+                ha="center", fontsize=9)
+ax.axvline(0, color="#2B2B2B", lw=0.8)
+ax.set_yticks([0, 1], ["Men's e-mail", "Women's e-mail"])
+ax.set_ylim(-0.6, 1.6)
+ax.invert_yaxis()
+ax.set(xlabel="net value per 1,000 customers e-mailed ($, 95% CI)", title="Is each e-mail worth sending?")
+ax.grid(alpha=0.25, axis="x")
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+
+# %% [markdown]
 # ## 4. Figure
 
 # %%
@@ -145,6 +199,14 @@ fig.tight_layout()
 fig.text(0.99, 0.97, "blue: regression-adjusted 95% CI · grey: unadjusted", ha="right", va="top",
          fontsize=9, color="#555555")
 records.save_figure(fig, "02_email_test_effects.png", SOURCE)
+plt.show()
+
+# %% [markdown]
+# **How to read the figure.** Each panel is one metric; each row one comparison. The dot is the
+# estimated effect and the blue bar its 95% interval; the thin grey bar above it is the interval
+# without regression adjustment. A bar that does not cross the vertical zero line is an effect
+# unlikely to be chance. Both e-mails clearly raise visits, purchases and spend; men's against
+# women's (bottom row) is the closest call.
 
 # %%
 record = {
@@ -210,6 +272,23 @@ for share in (0.02, 0.05, 0.10, 0.20):
                      "sends_to_detect_half_the_lift": int(np.ceil((per_send / target) ** 2)),
                      "margin_given_up_per_send": share * LIST * value[ARM]["lift"] * MARGIN})
 holdback = pd.DataFrame(holdback)
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.2))
+labels = [f"{s:.0%}" for s in holdback["holdback_share"]]
+for ax, col, title, fmt in [
+        (axes[0], "margin_given_up_per_send", "Cost: margin given up per send", "${:,.0f}"),
+        (axes[1], "sends_to_detect_half_the_lift", "Speed: sends pooled to detect half the lift", "{:,.0f}")]:
+    bars = ax.bar(labels, holdback[col], color=["#BFBFBF", "#5B8FF9", "#BFBFBF", "#BFBFBF"])
+    ax.bar_label(bars, labels=[fmt.format(v) for v in holdback[col]], fontsize=9, padding=2)
+    ax.set(title=title, xlabel="share of customers held back")
+    ax.margins(y=0.15)
+    ax.set_yticks([])
+    ax.spines[["top", "right", "left"]].set_visible(False)
+fig.suptitle("Choosing a holdback: a bigger one costs more each send but spots a fading e-mail sooner (5% chosen)",
+             x=0.01, ha="left", fontsize=11)
+fig.tight_layout()
+plt.show()
+
 pick = holdback[holdback["holdback_share"] == 0.05].iloc[0]
 print(f"a 5% holdback ({int(pick['customers_held_back']):,} customers) gives up about "
       f"${pick['margin_given_up_per_send']:,.0f} of margin a send and detects half the measured lift "
@@ -238,3 +317,18 @@ print(f"two arms of {next_test['n_per_arm']:,} customers ({next_test['sends_need
 rollout = {"holdback": holdback.to_dict(orient="records"), "next_test": next_test}
 record["rollout"] = rollout
 print("updated", records.write("02_email_test_readout", record, SOURCE).name)
+
+# %% [markdown]
+# ## Takeaways
+#
+# - **Both e-mails work; the men's e-mail works better.** It raises spend more than the women's
+#   e-mail, and the difference survives the correction for three comparisons.
+# - **Decision: send the men's e-mail to everyone**, following the rule written before the
+#   results were seen.
+# - **Keep measuring.** A 5% permanent holdback costs little margin per send and shows within a
+#   few sends if the e-mail is wearing out.
+# - **Next test:** the men's e-mail against a new version; it needs more customers than this
+#   test had, because the difference worth detecting is small.
+#
+# **Next:** [notebook 03](03_email_test_targeting.ipynb), whether different customers should get
+# different e-mails.

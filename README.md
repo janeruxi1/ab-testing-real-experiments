@@ -19,7 +19,8 @@
 ![The e-mail test: effect of each e-mail](./reports/figures/02_email_test_effects.png)
 
 **Start here:** the [decision memo](./reports/decision_memo.md) (5 minutes), then
-[notebook 02](./notebooks/02_email_test_readout.ipynb) for the readout itself.
+[notebook 02](./notebooks/02_email_test_readout.ipynb) for the readout itself. The
+[notebook reading guide](./notebooks/README.md) lists every notebook with its question and figures.
 
 ---
 

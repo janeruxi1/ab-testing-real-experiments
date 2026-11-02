@@ -1,21 +1,38 @@
 # %% [markdown]
 # # 01 · The e-mail test: what could it detect, and can it be trusted?
 #
-# Kevin Hillstrom's e-mail test (MineThatData, 2008): 64,000 customers who bought in the past 12
-# months were randomized in equal thirds to a men's merchandise e-mail, a women's merchandise
-# e-mail, or no e-mail, and their visits, purchases and spend were recorded for two weeks.
+# | | |
+# |---|---|
+# | **Question** | Before looking at any results: was the test big enough to answer the question, and did the randomization work? |
+# | **Data** | Kevin Hillstrom's e-mail test (MineThatData, 2008): 64,000 customers who bought in the past 12 months, split at random into three equal groups: a men's merchandise e-mail, a women's merchandise e-mail, or no e-mail. Visits, purchases and spend were recorded for two weeks. |
+# | **Answer** | The test can be trusted: each group got a third of the customers, the groups look alike on everything known before the send, and no row is impossible. It is big enough to catch a clearly profitable e-mail, but could miss one that only just pays for itself. |
+# | **Next** | [Notebook 02](02_email_test_readout.ipynb) reads out what each e-mail did. |
 #
-# This notebook covers the first two stages of the experiment: **design** (was the test big
-# enough to answer the question?) and **trust** (did the randomization work?). The trust checks
-# are the ones the analysis plan
-# ([`reports/hillstrom_analysis_plan.md`](../reports/hillstrom_analysis_plan.md)) fixes in
-# advance; a failure there stops the readout.
+# **Why this comes first.** A test whose groups were not split the way they should have been
+# gives a wrong answer however carefully it is analysed. So these checks run before any effect is
+# looked at, and the analysis plan
+# ([`reports/hillstrom_analysis_plan.md`](../reports/hillstrom_analysis_plan.md)) fixes them in
+# advance: a failure here stops the readout.
+#
+# **Sections**
 #
 # 0. **Design:** the smallest effect this test could detect, and the size it needed.
-# 1. **Sample ratio:** did each arm get a third of the customers?
-# 2. **Balance:** do the arms look alike on everything known before the send?
+# 1. **Sample ratio:** did each group get a third of the customers?
+# 2. **Balance:** do the groups look alike on everything known before the send?
 # 3. **Data:** missing values and impossible combinations (spend without a purchase, a purchase
 #    without a visit).
+# 4. **A first look** at the outcomes, for orientation only (the readout is notebook 02).
+#
+# **Key terms**
+#
+# - **Arm:** one of the three randomized groups (`mens`, `womens`, `none`).
+# - **Sample ratio mismatch:** groups that are not the size the randomization intended; the most
+#   common sign of a broken test.
+# - **Standardized mean difference (SMD):** the gap between two groups' averages, measured in
+#   standard deviations. Under 0.05 is a negligible gap.
+# - **Minimum detectable effect (MDE):** the smallest true effect the test would detect 80% of
+#   the time.
+# - **Break-even lift:** the extra spend per customer at which an e-mail pays for itself.
 
 # %%
 import sys
@@ -79,18 +96,32 @@ print(f"{n_arm:,} customers per arm: the test reliably detects a spend lift of $
 design.round(4)
 
 # %% [markdown]
+# **How to read the table.** One row per metric. `mde_at_this_size` is what this test can
+# reliably detect with the customers it had; `effect_worth_detecting` is the smallest effect
+# worth acting on; `n_per_arm_needed` is how many customers per group it would take to detect
+# that. When the first is bigger than the second, the test could miss an effect that matters.
+#
 # Spend is the hard metric: a few large orders make it noisy, so it needs far more customers than
 # visits do for an effect worth the same money. Notebook 02 checks how much regression adjustment
 # on pre-send variables narrows the interval (the CUPED idea).
 
 # %% [markdown]
 # ## 1. Sample ratio
+#
+# The randomization put a third of the customers in each group. If the counts are further from
+# equal thirds than chance allows (a chi-square test, flagged at p < 0.001), something went
+# wrong between assignment and the data: a bug, a filter, lost records. A high p-value is what a
+# healthy test looks like.
 
 # %%
 counts = {a: int((df["arm"] == a).sum()) for a in hillstrom.ARM_ORDER}
 srm = readout.srm(counts)
 print(f"arm counts {counts}; chi-square {srm['chi2']:.3f}, p = {srm['p_value']:.3f} -> "
       + ("passes" if srm["passed"] else "FAILS (p < 0.001): stop and investigate"))
+
+# %% [markdown]
+# **What this means.** The three counts are within about a hundred customers of each other, which is
+# what chance alone produces; the check passes.
 
 # %% [markdown]
 # ## 2. Balance on what was known before the send
@@ -109,6 +140,11 @@ print(f"largest |SMD|: {worst.name} {worst['max_abs_smd']:.4f}; "
 balance.head(8).round(4)
 
 # %% [markdown]
+# **How to read the table.** Each row is a variable known before the send; `max_abs_smd` is the
+# largest gap between any two groups. Every value is far below 0.05, so the groups were alike
+# before the e-mails went out, and any later difference can be put down to the e-mails.
+
+# %% [markdown]
 # ## 3. Data checks
 
 # %%
@@ -120,6 +156,10 @@ checks = {
     "purchase without a visit": int(((df["conversion"] == 1) & (df["visit"] == 0)).sum()),
 }
 pd.Series(checks, name="rows")
+
+# %% [markdown]
+# **What this means.** Each line counts rows that would be impossible if the data were recorded
+# correctly. All zeros: the outcomes are internally consistent.
 
 # %% [markdown]
 # ## 4. What the outcomes look like
@@ -150,6 +190,32 @@ for ax in axes:
     ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 records.save_figure(fig, "01_email_test_checks.png", SOURCE)
+plt.show()
+
+# %% [markdown]
+# **How to read the figure.** Left: most buyers spend under a few hundred dollars, with a long
+# tail; the dashed line is the cap, so a handful of very large orders cannot swing the result.
+# Right: the balance check from section 2 as bars; every bar is far left of the dashed 0.05 line.
+#
+# **Raw outcomes by group.** The averages below are only a first look: they ignore the spend
+# cap, the regression adjustment and the uncertainty, all of which notebook 02 handles.
+
+# %%
+raw_by_arm = df.groupby("arm", observed=True)[["visit", "conversion", "spend"]].mean().reindex(hillstrom.ARM_ORDER)
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.2))
+for ax, col, title, fmt in zip(axes, raw_by_arm.columns, ["Visit rate", "Purchase rate", "Spend per customer"],
+                               ["{:.1%}", "{:.2%}", "${:.2f}"]):
+    bars = ax.bar(["No e-mail", "Men's", "Women's"], raw_by_arm[col], color=["#BFBFBF", "#5B8FF9", "#5AD8A6"])
+    ax.bar_label(bars, labels=[fmt.format(v) for v in raw_by_arm[col]], fontsize=9, padding=2)
+    ax.set(title=title)
+    ax.margins(y=0.18)
+    ax.set_yticks([])
+    ax.spines[["top", "right", "left"]].set_visible(False)
+fig.suptitle("Raw averages by group, two weeks after the send (no adjustment, no intervals)",
+             x=0.01, ha="left", fontsize=11)
+fig.tight_layout()
+plt.show()
+raw_by_arm.round(4)
 
 # %%
 record = {"n": len(df), "design": design.reset_index().to_dict(orient="records"), "srm": srm, "balance_max_abs_smd": balance["max_abs_smd"].round(6).to_dict(),
@@ -162,3 +228,15 @@ verdict = (f"Sample ratio p = {srm['p_value']:.3f} ({'passes' if srm['passed'] e
            f"largest imbalance |SMD| {worst['max_abs_smd']:.3f} ({worst.name}); "
            + ("no impossible rows." if not failed else f"problems: {', '.join(failed)}."))
 print(verdict)
+
+# %% [markdown]
+# ## Takeaways
+#
+# - **The test can be trusted.** Group sizes, balance and data checks all pass, so the readout
+#   can go ahead as planned.
+# - **It is only just big enough.** The test can detect a clearly profitable e-mail, but an
+#   e-mail that only just pays for itself could be missed. Keep that in mind if an effect comes
+#   out near the break-even line.
+# - **Spend needs care.** It is mostly zeros with a long tail, so it is capped before analysis.
+#
+# **Next:** [notebook 02](02_email_test_readout.ipynb), the readout.

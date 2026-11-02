@@ -1,6 +1,17 @@
 # %% [markdown]
 # # 05 · A testing programme: how much is a "winning" headline worth?
 #
+# | | |
+# |---|---|
+# | **Question** | When a test picks a winning headline, how much of its measured lift is real? |
+# | **Data** | Upworthy's confirmatory tests that passed notebook 04's check and fall outside the broken window, then the separate holdout sample as a final check. |
+# | **Answer** | About half. A winner's lift on fresh traffic is roughly half of what the test showed, and a simple statistical correction (shrinkage) predicts most of that drop. Testing still pays: picking winners clearly beats publishing a headline at random. |
+# | **Next** | This is the last notebook of Part 2; the [decision memo](../reports/decision_memo.md) sums up both parts. |
+#
+# **Why this matters.** Every testing programme reports its winners' lifts, and those numbers
+# are added up into "what testing earned us". If winners systematically overstate themselves
+# (the *winner's curse*), the programme looks better than it is and its forecasts miss.
+#
 # Three questions from the plan ([`reports/upworthy_analysis_plan.md`](../reports/upworthy_analysis_plan.md)),
 # on tests outside the maintainers' problem window that pass the sample-ratio check (notebook 04):
 #
@@ -15,6 +26,15 @@
 # picks the winner; half B, which played no part in choosing it, measures it. The covariance of
 # a package's two half-sample results estimates how much packages truly differ, with no model of
 # the noise. Every result is averaged over 20 random splits (seeds 0–19).
+#
+# **Key terms**
+#
+# - **Winner's curse:** the version that wins a test is partly the best version and partly the
+#   luckiest one, so its measured lift is too high on average.
+# - **True spread (tau):** how much packages really differ once the noise from limited traffic
+#   is removed.
+# - **Empirical-Bayes shrinkage:** pull each measured result toward its test's average, more so
+#   when the result is noisy, to predict what it will do on fresh traffic.
 
 # %%
 import os
@@ -68,6 +88,11 @@ print(f"true sd {TAU:.3f} (split-to-split range {taus.min():.3f}–{taus.max():.
       f"[{tau_ci[0]:.3f}, {tau_ci[1]:.3f}]); the raw spread, noise included, is {naive_sd:.3f}")
 
 # %% [markdown]
+# **What this means.** Packages really do differ: a typical package is about a quarter better or
+# worse than its test's average. The raw spread is larger because it includes noise; the gap
+# between the two is what makes winners overstate themselves.
+
+# %% [markdown]
 # ## Q3. How much does the winner overstate itself?
 #
 # In each test, half A's winner: its lift over the test's other packages on half A (where it was
@@ -82,6 +107,13 @@ print(f"winner's lift on the half that chose it {w['lift_a_mean']:.3f}, on the o
       f"{w['survival']:.0%} survives. Shrinkage predicted {w['shrunk_lift_mean']:.3f}. "
       f"Same winner on both halves in {w['same_winner_rate']:.0%} of tests (chance {w['chance_same_winner']:.0%}).")
 per_split.describe().loc[["mean", "min", "max"]].round(4)
+
+# %% [markdown]
+# **How to read the table.** Each column is one quantity, averaged over the 20 random splits
+# (`min` and `max` show how much it moves between splits; very little). The key pair is
+# `lift_a_mean` (the winner's lift where it was chosen) against `lift_b_mean` (its lift on fresh
+# traffic); `survival` is the second divided by the first, and `shrunk_lift_mean` is what
+# shrinkage predicted for fresh traffic.
 
 # %% [markdown]
 # ## Q4. What did picking winners buy?
@@ -120,6 +152,14 @@ for ax in axes:
     ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 records.save_figure(fig, f"05_winners_{SAMPLE}.png", "real")
+plt.show()
+
+# %% [markdown]
+# **How to read the figure.** Left: the grey histogram is each winner's lift on the half of the
+# traffic that chose it; the blue one is the same winners on the other half. Blue sits clearly
+# to the left: winners shrink on fresh traffic. Right: tests are grouped into ten bands by how
+# big the winner's lift looked. If there were no curse, points would sit on the dotted diagonal;
+# they sit well below it, and the green shrinkage prediction tracks the blue measured line.
 
 # %% [markdown]
 # ## Holdout: Q1–Q4 once more
@@ -170,3 +210,14 @@ lines = [
     f"(true sd {htau:.2f}, {hw['survival']:.0%} of the winner's lift survives, gain {holdout['gain_vs_random_relative']:+.1%}).",
 ]
 print("\n".join(f"{i}. {t}" for i, t in enumerate(lines, 1)))
+
+# %% [markdown]
+# ## Takeaways
+#
+# - **Discount a winner's lift by about half** before adding it to forecasts or reporting it as
+#   impact; better, apply shrinkage, which predicts the drop test by test.
+# - **Testing is still worth it.** Picking the winner beats publishing a random headline by a
+#   wide margin, even after the curse.
+# - **The holdout sample agrees**, so these are properties of the programme, not of one sample.
+#
+# **Back to:** the [README](../README.md) or the [decision memo](../reports/decision_memo.md).

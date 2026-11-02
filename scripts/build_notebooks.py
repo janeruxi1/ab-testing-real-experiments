@@ -129,7 +129,8 @@ def main(argv=None) -> int:
             print("Refusing to execute: the Hillstrom file is not in data/raw/ (see data/README.md), "
                   "and the published notebooks should show the real results.")
             return 1
-        os.environ.setdefault("MPLBACKEND", "module://matplotlib_inline.backend_inline")
+        # Force the inline backend: an inherited MPLBACKEND=Agg would run the cells but drop every figure.
+        os.environ["MPLBACKEND"] = "module://matplotlib_inline.backend_inline"
         if sys.platform == "win32":  # pyzmq needs the selector event loop on Windows; avoids a noisy warning
             import asyncio
 

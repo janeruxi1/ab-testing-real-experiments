@@ -1,7 +1,14 @@
 # %% [markdown]
 # # 03 · The e-mail test: should the e-mail differ by customer?
 #
-# Splitting a test's results by segment and keeping the segment where the treatment looks best
+# | | |
+# |---|---|
+# | **Question** | Would sending different e-mails to different kinds of customer beat sending the men's e-mail to everyone? |
+# | **Data** | The same 64,000 customers, split at random into two halves: one to search for a targeting rule, one to check it. |
+# | **Answer** | No. The best rule found on the first half looked better, but on the second half it was no better than one e-mail for everyone. Keep it simple. |
+# | **Next** | [Notebook 04](04_programme_sample_ratio.ipynb) moves from one test to a whole testing programme. |
+#
+# **The trap this avoids.** Splitting a test's results by segment and keeping the segment where the treatment looks best
 # is the most common way to find an effect that is not there. The analysis plan
 # ([`reports/hillstrom_analysis_plan.md`](../reports/hillstrom_analysis_plan.md)) guards against
 # it by searching on one random half of the customers and confirming on the other.
@@ -18,6 +25,15 @@
 # weighting (a customer counts when the arm they were randomized to is the one the policy would
 # have chosen, weighted by 3). The targeting policy is recommended only if its gain over the
 # single choice has a 95% bootstrap interval above zero.
+#
+# **Key terms**
+#
+# - **Policy:** a rule that says which e-mail each customer gets, e.g. "men's e-mail to
+#   men's-line buyers, nothing to the rest".
+# - **Inverse-probability weighting (IPW):** a way to estimate what a policy would have earned
+#   using only the customers whose random assignment happens to match what the policy picks.
+# - **Bootstrap interval:** resample the customers many times and recompute, to see how much the
+#   answer could move by chance.
 
 # %%
 import sys
@@ -75,6 +91,12 @@ print("candidate carried forward:", chosen, candidates[chosen])
 cand.round(3)
 
 # %% [markdown]
+# **How to read the table.** One candidate rule per segment variable; `policy` says which
+# e-mail each level of that variable gets, and the last column is the rule's spend per customer
+# on the discovery half. The top row is carried forward. These values are optimistic by
+# construction: each rule was picked because it looked best on these very customers.
+
+# %% [markdown]
 # ## 2. Confirmation half: does targeting beat one e-mail for everyone?
 
 # %%
@@ -87,6 +109,11 @@ recommend = confirm["ci"][0] > 0
 print(f"targeted {conf_value['targeted']:.3f} vs {best_single} for everyone {conf_value['single']:.3f} per customer; "
       f"gain {confirm['gain']:+.3f} [{confirm['ci'][0]:+.3f}, {confirm['ci'][1]:+.3f}] -> "
       + ("recommend targeting" if recommend else "do not target"))
+
+# %% [markdown]
+# **What this means.** On customers it had never seen, the targeting rule earns about the same as
+# one e-mail for everyone, and the interval runs from a loss to a gain. There is no evidence it
+# helps, so the simpler policy stays.
 
 # %% [markdown]
 # ## 3. For reading only: every candidate on the confirmation half
@@ -120,6 +147,13 @@ ax.grid(alpha=0.25, axis="x")
 ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 records.save_figure(fig, "03_email_test_targeting.png", SOURCE)
+plt.show()
+
+# %% [markdown]
+# **How to read the figure.** For each segment variable: grey is what targeting seemed to gain on
+# the half used to design it, blue is what it gained on the half held back. The grey bars are
+# the in-sample illusion; the blue bars, close to zero or below, are what a rollout would
+# actually get.
 
 # %%
 record = {"seed": SEED, "segments": SEGMENTS, "candidates": candidates,
@@ -137,3 +171,14 @@ lines = [
     + ("targeting is recommended." if recommend else "not enough to recommend targeting."),
 ]
 print("\n".join(f"{i}. {t}" for i, t in enumerate(lines, 1)))
+
+# %% [markdown]
+# ## Takeaways
+#
+# - **A segment that "wins" in the data you searched is not evidence.** Search on one half,
+#   confirm on the other, and decide only on the confirmation.
+# - **Here, targeting does not beat one e-mail for everyone**, so the recommendation from
+#   notebook 02 stands.
+#
+# **Next:** [notebook 04](04_programme_sample_ratio.ipynb), checking 22,743 tests for broken
+# randomization.
