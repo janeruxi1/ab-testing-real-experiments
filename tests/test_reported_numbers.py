@@ -19,6 +19,8 @@ def rec(name):
 
 C01, C02, C03 = rec("01_email_test_checks"), rec("02_email_test_readout"), rec("03_email_test_targeting")
 C04, C05 = rec("04_sample_ratio_confirmatory"), rec("05_winners_confirmatory")
+R02, P04 = rec("02b_email_test_robustness"), rec("04b_programme_power_fdr_confirmatory")
+GAP = max(max(abs(r["boot_low"] - r["welch_low"]), abs(r["boot_high"] - r["welch_high"])) for r in R02["bootstrap"])
 
 
 def money(x):
@@ -85,6 +87,17 @@ CLAIMS = [
     ("memo", f"{C05['winners']['same_winner_rate']:.0%} of tests, against {C05['winners']['chance_same_winner']:.0%}"),
     ("memo", f"{C05['winners']['shrunk_lift_mean']:.2f} against the {C05['winners']['lift_b_mean']:.2f} measured"),
     ("both", f"+{C05['gain_vs_random_relative']:.0%}"),
+    # cross-checks (notebook 02 section 6) and programme power / false discoveries (notebook 04 section 3)
+    ("memo", f"within ${GAP + 0.005:.2f} of the normal-theory ones"),
+    ("memo", f"probability\n  **{R02['bayes']['mens']['p_pays_for_itself']:.2%}**"),
+    ("memo", f"with probability **{R02['bayes']['mens_vs_womens']['p_mens_better']:.1%}**"),
+    ("memo", f"expected **${R02['bayes']['mens_vs_womens']['expected_loss_per_1000_choosing_mens']:.2f}** per 1,000"),
+    ("memo", f"pays with probability {R02['bayes']['womens']['p_pays_for_itself']:.0%}"),
+    ("memo", f"Across the {P04['tests']:,} tests"),
+    ("memo", f"only a **{P04['mde_relative_quantiles']['0.5']:.0%}** difference"),
+    ("memo", f"**{P04['share_p_below_005']:.0%}** of tests"),
+    ("memo", f"keeps **{P04['share_bh_discoveries']:.0%}**"),
+    ("memo", f"about **{P04['storey_pi0']:.0%}**"),
 ]
 
 
@@ -95,9 +108,10 @@ def test_doc_quotes_the_recorded_result(where, text):
 
 
 def test_records_are_from_real_data_and_the_holdout_agrees():
-    for r in (C01, C02, C03, C04, C05):
+    for r in (C01, C02, C03, C04, C05, R02, P04):
         assert r["source"] == "real"
     assert C04["sample"] == "confirmatory" and C04["confirmed"]
+    assert P04["share_powered_for_10pct"] == 0 and "none could detect 10%" in DOCS["memo"]
     assert C05["holdout_agrees"]
 
 

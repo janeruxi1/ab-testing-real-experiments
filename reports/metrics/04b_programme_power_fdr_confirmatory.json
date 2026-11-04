@@ -1,0 +1,18 @@
+{
+  "source": "real",
+  "sample": "confirmatory",
+  "tests": 17681,
+  "mde_relative_quantiles": {
+    "0.1": 0.41825654,
+    "0.25": 0.50859064,
+    "0.5": 0.63373566,
+    "0.75": 0.80069304,
+    "0.9": 1.00466474
+  },
+  "share_powered_for_10pct": 0.0,
+  "share_powered_for_20pct": 0.00028279,
+  "share_p_below_005": 0.45382049,
+  "bh_discoveries": 6353,
+  "share_bh_discoveries": 0.35931226,
+  "storey_pi0": 0.3485097
+}

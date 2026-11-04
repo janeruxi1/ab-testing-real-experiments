@@ -34,7 +34,7 @@ two parts add what a single test can't show.
 | **1. Plan before seeing results:** metrics, caps, comparisons, decision rule | [`reports/hillstrom_analysis_plan.md`](./reports/hillstrom_analysis_plan.md) (git history shows it landing first) |
 | **2. Design:** smallest detectable effect, sample size needed | [Notebook 01](./notebooks/01_email_test_checks.ipynb) §0; deeper power analysis in [StreamFlix 02](./notebooks/streamflix/02_power_analysis.ipynb) |
 | **3. Trust the data:** sample ratio, covariate balance, impossible rows | [Notebook 01](./notebooks/01_email_test_checks.ipynb); at programme scale in [notebook 04](./notebooks/04_programme_sample_ratio.ipynb) |
-| **4. Read out:** intervals, regression adjustment (CUPED idea), Holm across comparisons | [Notebook 02](./notebooks/02_email_test_readout.ipynb); Bayesian version in [StreamFlix 04](./notebooks/streamflix/04_bayesian.ipynb) |
+| **4. Read out:** intervals, regression adjustment (CUPED idea), Holm across comparisons; bootstrap and Bayesian cross-checks | [Notebook 02](./notebooks/02_email_test_readout.ipynb); Bayesian version in [StreamFlix 04](./notebooks/streamflix/04_bayesian.ipynb) |
 | **5. Decide:** dollars per 1,000 e-mailed, break-even margin | [Notebook 02](./notebooks/02_email_test_readout.ipynb) §3 |
 | **6. Who benefits:** segment search with a held-out confirmation half | [Notebook 03](./notebooks/03_email_test_targeting.ipynb) |
 | **7. Pitfalls:** winner's curse, peeking | [Notebook 05](./notebooks/05_programme_winners.ipynb); [StreamFlix 07](./notebooks/streamflix/07_sensitivity_robustness.ipynb) (sequential looks) |
@@ -62,7 +62,7 @@ written on the exploratory sample and pushed before the confirmatory one was ana
 
 | Notebook | What it answers |
 |---|---|
-| [04 · Sample-ratio check](./notebooks/04_programme_sample_ratio.ipynb) | Does a standard check find the maintainers' broken-randomization window without being told it? |
+| [04 · Sample-ratio check](./notebooks/04_programme_sample_ratio.ipynb) | Does a standard check find the maintainers' broken-randomization window without being told it? How much could each test detect, and how many "significant" results are real? |
 | [05 · Winners](./notebooks/05_programme_winners.ipynb) | How different are headlines really? How much does the winner overstate itself? What did testing buy? Plus the holdout rerun. |
 
 ![Sample-ratio failures by month](./reports/figures/04_sample_ratio_confirmatory.png)

@@ -90,3 +90,11 @@ been opened by the analysis code at this point).
   from the experiments and are kept unchanged.
 - **The holdout rerun of Q1–Q4 is unchanged** and is reported in the same notebook as Q2–Q4
   (notebook 05), so the analysis sample's definition no longer mentions Q5.
+
+## Note added 4 November 2026 (after the confirmatory analysis)
+
+A programme-level power and false-discovery analysis was added to notebook 04: each test's
+minimum detectable relative difference between two packages, a chi-square homogeneity test per
+test with Benjamini-Hochberg at a 5% false discovery rate, and Storey's estimate of the share of
+tests with no real difference. It is descriptive, recorded separately
+(`04b_programme_power_fdr_confirmatory.json`), and does not change Q1–Q4.

@@ -319,6 +319,81 @@ record["rollout"] = rollout
 print("updated", records.write("02_email_test_readout", record, SOURCE).name)
 
 # %% [markdown]
+# ## 6. Two cross-checks: heavy tails and a Bayesian reading
+#
+# Added after the plan's readout (dated note in the plan); neither changes the decision. Their
+# results go to a separate record, `02b_email_test_robustness.json`.
+#
+# **Heavy tails.** Spend is mostly zeros with a long tail, so the normal-theory interval could be
+# off. A bootstrap (2,000 resamples of customers within each arm) gives an interval that makes no
+# such assumption, for capped and uncapped spend. If the two intervals agree, the readout's
+# intervals can be trusted.
+
+# %%
+rng = np.random.default_rng(20261104)
+B = 2000
+arm_values = {(a, m): df.loc[df["arm"] == a, m].to_numpy(float)
+              for a in hillstrom.ARM_ORDER for m in ("spend_capped", "spend")}
+
+
+def boot_means(x):
+    return np.array([x[rng.integers(0, len(x), len(x))].mean() for _ in range(B)])
+
+
+boot_rows = []
+for m in ("spend_capped", "spend"):
+    means = {a: boot_means(arm_values[(a, m)]) for a in hillstrom.ARM_ORDER}
+    for t_arm, c_arm in COMPARISONS:
+        diffs = means[t_arm] - means[c_arm]
+        welch = readout.diff_in_means(df, m, t_arm, c_arm)
+        boot_rows.append({"metric": m, "comparison": f"{t_arm} vs {c_arm}", "diff": welch.diff,
+                          "welch_low": welch.ci[0], "welch_high": welch.ci[1],
+                          "boot_low": float(np.percentile(diffs, 2.5)), "boot_high": float(np.percentile(diffs, 97.5))})
+boot_table = pd.DataFrame(boot_rows)
+boot_table["widest_gap"] = np.maximum(abs(boot_table["boot_low"] - boot_table["welch_low"]),
+                                      abs(boot_table["boot_high"] - boot_table["welch_high"]))
+print(f"largest gap between a bootstrap and a normal-theory interval end: ${boot_table['widest_gap'].max():.3f}")
+boot_table.round(3)
+
+# %% [markdown]
+# **A Bayesian reading of the same decision.** With a flat prior and this much data, the
+# posterior for each lift is close to normal around the adjusted estimate with its standard
+# error. That turns the readout into the questions a manager asks: how likely is each e-mail to
+# pay for itself (lift above $0.25 a customer), how likely is the men's e-mail to be the better
+# one, and what is the expected cost of choosing it if it is not (expected loss)? The
+# [StreamFlix appendix](streamflix/04_bayesian.ipynb) does the full Beta-Binomial version.
+
+# %%
+breakeven = COST / MARGIN
+bayes = {}
+for arm in ("mens", "womens"):
+    e, _ = prim[f"{arm} vs none"]
+    bayes[arm] = {"p_pays_for_itself": float(stats.norm.sf((breakeven - e.diff) / e.se)),
+                  "p_lift_positive": float(stats.norm.sf(-e.diff / e.se)),
+                  "value_per_1000_90": [readout.value_per_1000(e.diff + z * e.se, MARGIN, COST)
+                                        for z in (stats.norm.ppf(0.05), stats.norm.ppf(0.95))]}
+h = head
+p_mens_better = float(stats.norm.sf(-h.diff / h.se))
+# expected loss of choosing men's: E[max(0, women's - men's)] in spend per customer, times margin per 1,000
+z = h.diff / h.se
+loss_spend = float(h.se * stats.norm.pdf(z) - h.diff * stats.norm.sf(z))
+bayes["mens_vs_womens"] = {"p_mens_better": p_mens_better,
+                           "expected_loss_per_1000_choosing_mens": 1000 * MARGIN * loss_spend}
+print(f"P(men's e-mail pays for itself) {bayes['mens']['p_pays_for_itself']:.1%}; "
+      f"P(women's pays) {bayes['womens']['p_pays_for_itself']:.1%}; "
+      f"P(men's better than women's) {p_mens_better:.1%}; expected loss of choosing men's "
+      f"${bayes['mens_vs_womens']['expected_loss_per_1000_choosing_mens']:.2f} per 1,000 e-mailed")
+robust = {"bootstrap_draws": B, "bootstrap": boot_table.to_dict(orient="records"), "bayes": bayes}
+print("wrote", records.write("02b_email_test_robustness", robust, SOURCE).name)
+
+# %% [markdown]
+# **How to read it.** The bootstrap and normal-theory intervals should differ by cents: at 21,000
+# customers per arm the average is close to normal even for spend. The Bayesian numbers restate
+# the decision: a probability near 1 that the men's e-mail pays, and an expected loss of well under
+# a dollar per 1,000 e-mailed from choosing it over the women's e-mail, against a value of about
+# $200 per 1,000. The women's e-mail probably pays too, but with real doubt.
+
+# %% [markdown]
 # ## Takeaways
 #
 # - **Both e-mails work; the men's e-mail works better.** It raises spend more than the women's

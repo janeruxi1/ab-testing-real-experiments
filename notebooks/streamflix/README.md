@@ -16,7 +16,7 @@
 
 **Fastest way in:** [`reports/streamflix/PROJECT_SUMMARY.md`](../../reports/streamflix/PROJECT_SUMMARY.md) — single-page catalog of what was built + what was found, with every headline number traced to its source notebook. Start there for a 5-minute overview, then dive into [`reports/streamflix/decision_memo.md`](../../reports/streamflix/decision_memo.md) for the stakeholder recommendation or `notebooks/streamflix/` for the full analysis.
 
-> 🔗 **Sister projects:** [`StreamFlix-Churn-Retention`](https://github.com/janeruxi1/churn-uplift-decisioning) — cost-aware churn targeting — and [`StreamFlix-RAG-evaluation`](https://github.com/janeruxi1/StreamFlix-RAG-evaluation) — an evaluation harness for an AI support assistant — on the same StreamFlix context. The first two walk through the top-of-funnel and retention halves of a subscription product's decision loop; the third asks whether a support assistant is safe to deploy.
+> 🔗 **Sister projects:** [`churn-uplift-decisioning`](https://github.com/janeruxi1/churn-uplift-decisioning) — cost-aware churn targeting — and [`StreamFlix-RAG-evaluation`](https://github.com/janeruxi1/StreamFlix-RAG-evaluation) — an evaluation harness for an AI support assistant — on the same StreamFlix context. The first two walk through the top-of-funnel and retention halves of a subscription product's decision loop; the third asks whether a support assistant is safe to deploy.
 
 ---
 
@@ -203,7 +203,7 @@ Run locally: `pytest tests/`
 
 ## 🔗 Related work
 
-This project pairs with [`StreamFlix-Churn-Retention`](https://github.com/janeruxi1/churn-uplift-decisioning), which handles the *retention* half of the same product's decision loop:
+This project pairs with [`churn-uplift-decisioning`](https://github.com/janeruxi1/churn-uplift-decisioning), which handles the *retention* half of the same product's decision loop:
 
 | | This project | Sister project |
 |---|---|---|

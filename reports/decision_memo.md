@@ -53,6 +53,12 @@ by the search, so the simple policy stands.
   $0.31. The lift that just pays for an e-mail is $0.25, which would have needed 33,700 per arm.
   The men's e-mail is far above both, so the decision is safe; a marginal e-mail could have been
   missed.
+- **Two cross-checks agree** (added after the readout). A bootstrap of customers gives intervals
+  within $0.02 of the normal-theory ones, even for uncapped spend, so the heavy tail doesn't
+  distort them. Read as a Bayesian, the men's e-mail pays for itself with probability
+  **99.98%** and beats the women's e-mail with probability **98.3%**; choosing it costs an
+  expected **$0.38** per 1,000 e-mailed if the women's e-mail is in fact better. The women's
+  e-mail pays with probability 91%.
 
 ### Rollout
 
@@ -82,6 +88,18 @@ that window and **0.5%** outside it (136 times as often). It also flags a smalle
 early 2013 (about 2–5% of tests a month against 0.1% expected by chance).
 
 **Recommendation:** run the check automatically on every test and block the readout on a failure.
+
+### 1b. Each test is small, so the programme learns in aggregate
+
+Added after the plan's analysis. Across the 17,681 tests in the analysis sample, the median test
+could detect only a **63%** difference in click-through between two packages (80% power, 5%
+level), and none could detect 10%. Still, **45%** of tests show some difference at p < 0.05, and
+Benjamini-Hochberg keeps **36%** at a 5% false discovery rate. Storey's estimate puts the share
+of tests whose packages truly don't differ at no more than about **35%**; it is an upper bound,
+because small tests hide real differences too.
+
+**Recommendation:** don't read single tests as proof; size tests for the difference worth
+having, or pool what the programme learns, as section 2 does.
 
 ### 2. Headlines matter, but winners overstate themselves by half
 

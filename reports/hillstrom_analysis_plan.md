@@ -114,3 +114,11 @@ Two sections are added; neither changes a metric, comparison or the decision rul
 2. **Rollout and follow-up (notebook 02).** How the decision would be rolled out: a small
    permanent no-e-mail holdback to keep measuring the e-mail's value, the guardrails to watch,
    and the next test, sized with the same calculation.
+
+## Note added 4 November 2026 (after the readout)
+
+Two cross-checks were added to notebook 02 after the decision was made: bootstrap intervals for
+the spend lifts (2,000 resamples of customers within each arm), and a Bayesian reading of the
+adjusted estimates (normal posterior under a flat prior: probability each e-mail pays for
+itself, probability the men's e-mail is better, expected loss of choosing it). They are recorded
+separately (`02b_email_test_robustness.json`) and do not change the decision rule or the decision.

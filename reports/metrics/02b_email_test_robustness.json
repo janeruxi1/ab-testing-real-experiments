@@ -1,0 +1,88 @@
+{
+  "source": "real",
+  "bootstrap_draws": 2000,
+  "bootstrap": [
+    {
+      "metric": "spend_capped",
+      "comparison": "mens vs none",
+      "diff": 0.76982716,
+      "welch_low": 0.48514913,
+      "welch_high": 1.05450518,
+      "boot_low": 0.49401567,
+      "boot_high": 1.06058816,
+      "widest_gap": 0.00886654
+    },
+    {
+      "metric": "spend_capped",
+      "comparison": "womens vs none",
+      "diff": 0.42441222,
+      "welch_low": 0.16896451,
+      "welch_high": 0.67985992,
+      "boot_low": 0.16829502,
+      "boot_high": 0.68363844,
+      "widest_gap": 0.00377851
+    },
+    {
+      "metric": "spend_capped",
+      "comparison": "mens vs womens",
+      "diff": 0.34541494,
+      "welch_low": 0.03257056,
+      "welch_high": 0.65825932,
+      "boot_low": 0.04777149,
+      "boot_high": 0.64848587,
+      "widest_gap": 0.01520094
+    },
+    {
+      "metric": "spend",
+      "comparison": "mens vs none",
+      "diff": 0.76982716,
+      "welch_low": 0.48514913,
+      "welch_high": 1.05450518,
+      "boot_low": 0.48413324,
+      "boot_high": 1.06904766,
+      "widest_gap": 0.01454248
+    },
+    {
+      "metric": "spend",
+      "comparison": "womens vs none",
+      "diff": 0.42441222,
+      "welch_low": 0.16896451,
+      "welch_high": 0.67985992,
+      "boot_low": 0.17024213,
+      "boot_high": 0.68053264,
+      "widest_gap": 0.00127762
+    },
+    {
+      "metric": "spend",
+      "comparison": "mens vs womens",
+      "diff": 0.34541494,
+      "welch_low": 0.03257056,
+      "welch_high": 0.65825932,
+      "boot_low": 0.03509604,
+      "boot_high": 0.66436445,
+      "widest_gap": 0.00610513
+    }
+  ],
+  "bayes": {
+    "mens": {
+      "p_pays_for_itself": 0.99981677,
+      "p_lift_positive": 0.99999994,
+      "value_per_1000_90": [
+        111.3111602,
+        302.20195481
+      ]
+    },
+    "womens": {
+      "p_pays_for_itself": 0.91007625,
+      "p_lift_positive": 0.9994449,
+      "value_per_1000_90": [
+        -15.81586493,
+        155.54319949
+      ]
+    },
+    "mens_vs_womens": {
+      "p_mens_better": 0.98348532,
+      "expected_loss_per_1000_choosing_mens": 0.37751969
+    }
+  }
+}
