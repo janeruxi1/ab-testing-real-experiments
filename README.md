@@ -3,6 +3,7 @@
 ![CI](https://github.com/janeruxi1/ab-testing-real-experiments/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Live demo](https://img.shields.io/badge/Streamlit-Live%20demo-FF4B4B?logo=streamlit)](https://janeruxi1-ab-testing-project.streamlit.app/)
 
 > One real randomized experiment taken from analysis plan to rollout, then 22,743 real
 > experiments read as a testing programme. Analysis plans were committed before the results;
@@ -17,6 +18,10 @@
 | **How much should a winning headline's lift be trusted?** | **About half.** Only **47%** of a winner's observed lift survives on fresh traffic; empirical-Bayes shrinkage predicts most of the drop. Picking winners still beat a random headline by **+20%** click-through. |
 
 ![The e-mail test: effect of each e-mail](./reports/figures/02_email_test_effects.png)
+
+*How to read it: each dot is one comparison's effect over two weeks, with its 95% interval. A bar
+that stays clear of zero is an effect unlikely to be chance. The men's e-mail beats no e-mail on
+spend, purchases and visits, and beats the women's e-mail on spend.*
 
 **Start here:** the [decision memo](./reports/decision_memo.md) (5 minutes), then
 [notebook 02](./notebooks/02_email_test_readout.ipynb) for the readout itself. The

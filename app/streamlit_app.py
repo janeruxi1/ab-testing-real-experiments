@@ -145,6 +145,7 @@ st.markdown(
     "One real e-mail test read out from plan to rollout, 22,743 real headline tests read as a "
     "programme, and the tools to plan and analyse a test of your own."
 )
+st.markdown(f"[Code and notebooks]({REPO_URL}) · [Decision memo]({REPO_URL}/blob/main/reports/decision_memo.md)")
 
 with st.expander("ℹ️ How to use this demo", expanded=False):
     st.markdown(
