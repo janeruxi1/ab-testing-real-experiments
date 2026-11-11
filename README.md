@@ -22,11 +22,11 @@ CI checks every number below against the recorded results.
 - **Trust a winning headline about halfway.** Only 47% of a winner's lift survives on fresh traffic, yet
   picking winners still beats a random headline by +20% click-through.
 
-![Key results](./reports/figures/00_readme_summary.png)
+![Profit per 1,000 e-mails by margin: the men's e-mail pays above a 13% margin](./reports/figures/00_readme_hero.png)
 
-*Left: each e-mail's effect on spend, with 95% intervals (grey = not distinguishable from zero).
-Middle and right: the testing programme. Drawn from the recorded results by
-`scripts/make_readme_figure.py`.*
+*Profit per 1,000 customers e-mailed over two weeks, against the retailer's margin on the extra spend, with
+95% intervals; each e-mail costs $0.10 to send. The men's e-mail breaks even at a 13% margin and is worth
+$207 per 1,000 at the assumed 40%. Drawn from the recorded results by `scripts/make_readme_figure.py`.*
 
 ## How it works
 
@@ -39,9 +39,10 @@ Middle and right: the testing programme. Drawn from the recorded results by
 | Programme checks | Sample-ratio screening, power per test, false discovery rate | [04](./notebooks/04_programme_sample_ratio.ipynb) |
 | Winner's curse | Split-sample re-measurement, empirical-Bayes shrinkage | [05](./notebooks/05_programme_winners.ipynb) |
 
-![Each e-mail's effect on visits, purchases and spend](./reports/figures/02_email_test_effects.png)
+![Key results at a glance](./reports/figures/00_readme_summary.png)
 
-*The men's e-mail beats no e-mail on spend, purchases and visits, and beats the women's e-mail on spend.*
+*Left: each e-mail's effect on spend, with 95% intervals (grey = not distinguishable from zero).
+Middle and right: the testing programme.*
 
 ## Appendix · StreamFlix: the full workflow on simulated data
 
